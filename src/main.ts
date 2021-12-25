@@ -18,6 +18,7 @@ async function run(): Promise<void> {
     const job_name = core.getInput('job_name');
     const github_token = core.getInput('github_token');
     const github_base_url = core.getInput('github_base_url');
+    const bot_token = core.getInput('bot_token');
 
     core.debug(`status: ${status}`);
     core.debug(`mention: ${mention}`);
@@ -46,6 +47,7 @@ async function run(): Promise<void> {
         channel,
         fields,
         job_name,
+        bot_token,
       },
       github_token,
       github_base_url,
