@@ -70,6 +70,7 @@ export const newWith = (): With => {
     channel: '',
     fields: '',
     job_name: '',
+    bot_token: '',
   };
 };
 
