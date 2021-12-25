@@ -72,9 +72,11 @@ export class Client {
 
       this.webhook = new IncomingWebhook(webhookUrl, options);
     } else if (this.with.channel && this.with.bot_token) {
-      this.webClient = new WebClient(this.with.bot_token)
+      this.webClient = new WebClient(this.with.bot_token);
     } else {
-      throw new Error('Specify secrets.SLACK_WEBHOOK_URL or channel & bot_token');
+      throw new Error(
+        'Specify secrets.SLACK_WEBHOOK_URL or channel & bot_token',
+      );
     }
     this.fieldFactory = new FieldFactory(
       this.with.fields,
@@ -116,7 +118,9 @@ export class Client {
     if (this.webhook) {
       await this.webhook.send(payload);
     } else if (this.webClient) {
-      await this.webClient.chat.postMessage(payload as ChatPostMessageArguments)
+      await this.webClient.chat.postMessage(
+        payload as ChatPostMessageArguments,
+      );
     }
 
     core.debug('send message');
