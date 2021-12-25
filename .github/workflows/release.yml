@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: my-master
       - name: Create Release
         uses: actions/create-release@v1
         env:
