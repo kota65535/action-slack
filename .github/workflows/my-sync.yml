@@ -1,0 +1,34 @@
+name: Sync master
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every 2:00 on Monday
+    - cron: 0 2 * * 1
+
+jobs:
+  syncMaster:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PERSONAL_TOKEN }}
+      - name: Configure git
+        run: |
+          git config --global committer.email "noreply@github.com"
+          git config --global committer.name "GitHub"
+          git config --global author.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git config --global author.name "${GITHUB_ACTOR}"
+      - name: Sync master with upstream
+        run: |
+          git remote add upstream https://github.com/8398a7/action-slack
+          git fetch upstream master
+          git rebase upstream/master
+          git push -f origin master
+      - name: Merge master into my-master
+        run: |
+          git fetch origin my-master
+          git switch -t origin/my-master
+          git rebase master -X ours
+          git push -f origin my-master
