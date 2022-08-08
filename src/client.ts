@@ -57,9 +57,12 @@ export class Client {
     token: string,
     gitHubBaseUrl: string,
     webhookUrl?: string | null,
+    botToken?: string | null,
   ) {
     this.with = props;
     if (this.with.fields === '') this.with.fields = 'repo,commit';
+
+    botToken = botToken !== undefined ? botToken : this.with.bot_token;
 
     this.octokit = getOctokit(token);
 
@@ -71,8 +74,8 @@ export class Client {
       }
 
       this.webhook = new IncomingWebhook(webhookUrl, options);
-    } else if (this.with.channel && this.with.bot_token) {
-      this.webClient = new WebClient(this.with.bot_token);
+    } else if (this.with.channel && botToken) {
+      this.webClient = new WebClient(botToken);
     } else {
       throw new Error(
         'Specify secrets.SLACK_WEBHOOK_URL or channel & bot_token',

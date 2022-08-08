@@ -52,6 +52,7 @@ async function run(): Promise<void> {
       github_token,
       github_base_url,
       process.env.SLACK_WEBHOOK_URL,
+      process.env.SLACK_BOT_TOKEN,
     );
 
     switch (status) {
