@@ -219,7 +219,13 @@ export class FieldFactory {
 
   private async workflowRun(): Promise<string> {
     const { owner, repo } = context.repo;
-    const value = `<${this.gitHubBaseUrl}/${owner}/${repo}/actions/runs/${context.runId}|${context.workflow}>`;
+    const resp = await this.octokit?.rest.actions.getWorkflowRun({
+      owner,
+      repo: context.repo.repo,
+      run_id: context.runId,
+    });
+    const runName = resp?.data.name ?? context.workflow;
+    const value = `<${this.gitHubBaseUrl}/${owner}/${repo}/actions/runs/${context.runId}|${runName}>`;
     process.env.AS_WORKFLOW_RUN = value;
     return value;
   }
