@@ -6,6 +6,7 @@ import {
   IncomingWebhookSendArguments,
   IncomingWebhookDefaultArguments,
 } from '@slack/webhook';
+import { ChatPostMessageArguments, WebClient } from '@slack/web-api';
 import { FieldFactory } from './fields';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 
@@ -32,6 +33,7 @@ export interface With {
   channel: string;
   fields: string;
   job_name: string;
+  bot_token: string;
 }
 
 export interface Field {
@@ -45,7 +47,8 @@ const subteamMention = 'subteam^';
 
 export class Client {
   private fieldFactory: FieldFactory;
-  private webhook: IncomingWebhook;
+  private webhook: IncomingWebhook | undefined;
+  private webClient: WebClient | undefined;
   private octokit: Octokit;
   private with: With;
 
@@ -54,23 +57,30 @@ export class Client {
     token: string,
     gitHubBaseUrl: string,
     webhookUrl?: string | null,
+    botToken?: string | null,
   ) {
     this.with = props;
     if (this.with.fields === '') this.with.fields = 'repo,commit';
 
+    botToken = botToken !== undefined ? botToken : this.with.bot_token;
+
     this.octokit = getOctokit(token);
 
-    if (webhookUrl === undefined || webhookUrl === null || webhookUrl === '') {
-      throw new Error('Specify secrets.SLACK_WEBHOOK_URL');
-    }
+    if (webhookUrl) {
+      const options: IncomingWebhookDefaultArguments = {};
+      const proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
+      if (proxy) {
+        options.agent = new HttpsProxyAgent(proxy);
+      }
 
-    const options: IncomingWebhookDefaultArguments = {};
-    const proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
-    if (proxy) {
-      options.agent = new HttpsProxyAgent(proxy);
+      this.webhook = new IncomingWebhook(webhookUrl, options);
+    } else if (this.with.channel && botToken) {
+      this.webClient = new WebClient(botToken);
+    } else {
+      throw new Error(
+        'Specify secrets.SLACK_WEBHOOK_URL or channel & bot_token',
+      );
     }
-
-    this.webhook = new IncomingWebhook(webhookUrl, options);
     this.fieldFactory = new FieldFactory(
       this.with.fields,
       this.jobName,
@@ -108,7 +118,14 @@ export class Client {
 
   async send(payload: string | IncomingWebhookSendArguments) {
     core.debug(JSON.stringify(context, null, 2));
-    await this.webhook.send(payload);
+    if (this.webhook) {
+      await this.webhook.send(payload);
+    } else if (this.webClient) {
+      await this.webClient.chat.postMessage(
+        payload as ChatPostMessageArguments,
+      );
+    }
+
     core.debug('send message');
   }
 

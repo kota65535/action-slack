@@ -66,6 +66,10 @@ inputs:
     description: Specify if you want to use GitHub Enterprise.
     default: ""
     required: false
+  bot_token:
+    description: Slack bot token
+    default: ""
+    required: false
 runs:
   using: node16
   main: dist/index.js
